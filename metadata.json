@@ -1,0 +1,11 @@
+{
+    "name": "VATS",
+    "symbol": "VS",
+    "description": "VATS a powerful testing coin only on solana",
+    "image": "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/image.png",
+    "attributes": [
+  { "trait_type": "Strength", "value": 42 },
+  { "trait_type": "Edition", "value": "Founders" },
+  { "trait_type": "Version", "value": "1.0.3-beta" }
+]
+}

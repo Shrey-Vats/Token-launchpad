@@ -2,16 +2,19 @@ import { useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { 
+  createAssociatedTokenAccountInstruction,
   createInitializeMetadataPointerInstruction, 
   createInitializeMintInstruction, 
+  createMintToInstruction, 
   ExtensionType, 
+  getAssociatedTokenAddressSync, 
   getMintLen, 
   LENGTH_SIZE, 
   TOKEN_2022_PROGRAM_ID, 
   TYPE_SIZE 
 } from "@solana/spl-token";
 import { FaGithub, FaXTwitter } from 'react-icons/fa6';
-import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction } from "@solana/web3.js";
 import { createInitializeInstruction, pack, type TokenMetadata } from "@solana/spl-token-metadata";
 
 // shadcn/ui inspired components
@@ -40,6 +43,7 @@ const TokenForgeApp = () => {
   const [isMintAuthority, setIsMintAuthority] = useState<boolean>(true);
   const [isMetadataAuthority, setIsMetadataAuthority] = useState<boolean>(true);
   const [isDeploying, setIsDeploying] = useState(false);
+  const [mintAmount, setMintAmount]= useState("700000000");
 
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -121,6 +125,42 @@ const TokenForgeApp = () => {
       tx.partialSign(mint);
 
       const signature = await sendTransaction(tx, connection);
+      
+      const associatedTokenAccount = getAssociatedTokenAddressSync(
+        mint.publicKey,
+        publicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      console.log("associated token account: ", associatedTokenAccount.toBase58())
+
+
+      const transaction2 = new Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          publicKey,
+          associatedTokenAccount,
+          publicKey,
+          mint.publicKey,
+          TOKEN_2022_PROGRAM_ID
+        )
+      )
+
+      await sendTransaction(transaction2, connection);
+
+      const transaction3 = new Transaction().add(
+        createMintToInstruction(
+          mint.publicKey,
+          associatedTokenAccount,
+          publicKey, 
+          Number(mintAmount) * LAMPORTS_PER_SOL,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      await sendTransaction(transaction3, connection);
+
       console.log("Transaction Signature:", signature);
       alert(`Token Created Successfully!\nMint: ${mint.publicKey.toBase58()}`);
     } catch (error) {
@@ -225,6 +265,20 @@ const TokenForgeApp = () => {
                   min={0}
                   value={decimal}
                   onChange={(e) => setDecimal(e.target.value)}
+                  className="bg-zinc-900 border-zinc-800 h-12 text-center"
+                />
+              </div>
+            </div>
+                
+            <div>
+               <div className="space-y-2">
+                <Label htmlFor="decimals" className="text-zinc-300 ml-1">Mint Amount</Label>
+                <Input 
+                  id="decimals"
+                  type="number"
+                  min={0}
+                  value={mintAmount}
+                  onChange={(e) => setMintAmount(e.target.value)}
                   className="bg-zinc-900 border-zinc-800 h-12 text-center"
                 />
               </div>

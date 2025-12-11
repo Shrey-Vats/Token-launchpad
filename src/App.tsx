@@ -136,20 +136,15 @@ const TokenForgeApp = () => {
       console.log("associated token account: ", associatedTokenAccount.toBase58())
 
 
-      const transaction2 = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
+      const createAssociateTokenAccountInstruction = createAssociatedTokenAccountInstruction(
           publicKey,
           associatedTokenAccount,
           publicKey,
           mint.publicKey,
           TOKEN_2022_PROGRAM_ID
         )
-      )
 
-      await sendTransaction(transaction2, connection);
-
-      const transaction3 = new Transaction().add(
-        createMintToInstruction(
+      const createMintInstruction = createMintToInstruction(
           mint.publicKey,
           associatedTokenAccount,
           publicKey, 
@@ -157,6 +152,10 @@ const TokenForgeApp = () => {
           [],
           TOKEN_2022_PROGRAM_ID
         )
+
+      const transaction3 = new Transaction().add(
+        createAssociateTokenAccountInstruction,
+        createMintInstruction
       );
 
       await sendTransaction(transaction3, connection);
